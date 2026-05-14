@@ -14,23 +14,25 @@ import QuantumThreat from './pages/QuantumThreat';
 
 function App() {
   return (
-    <Router>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/pqc-signature" element={<PQCSignature />} />
-          <Route path="/ipfs-module" element={<IPFSModule />} />
-          <Route path="/merkle-tree" element={<MerkleTree />} />
-          <Route path="/blockchain" element={<Blockchain />} />
-          <Route path="/iot-monitor" element={<IoTMonitor />} />
-          <Route path="/analytics" element={<Analytics />} />
-          <Route path="/research-compare" element={<ResearchCompare />} />
-          <Route path="/architecture" element={<Architecture />} />
-          <Route path="/quantum-threat" element={<QuantumThreat />} />
-        </Routes>
-      </Layout>
-    </Router>
+    <div className="w-full max-w-[100vw] min-h-[100dvh] overflow-hidden bg-dark-bg text-gray-200">
+      <Router>
+        <Layout>
+          <Routes>
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/pqc-signature" element={<PQCSignature />} />
+            <Route path="/ipfs-module" element={<IPFSModule />} />
+            <Route path="/merkle-tree" element={<MerkleTree />} />
+            <Route path="/blockchain" element={<Blockchain />} />
+            <Route path="/iot-monitor" element={<IoTMonitor />} />
+            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/research-compare" element={<ResearchCompare />} />
+            <Route path="/architecture" element={<Architecture />} />
+            <Route path="/quantum-threat" element={<QuantumThreat />} />
+          </Routes>
+        </Layout>
+      </Router>
+    </div>
   );
 }
 

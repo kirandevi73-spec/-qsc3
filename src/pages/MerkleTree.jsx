@@ -38,16 +38,16 @@ export default function MerkleTree() {
       <Card className="glass-strong min-h-[500px] flex flex-col items-center justify-center relative overflow-hidden">
         {/* Animated SVG Tree */}
         <div className="relative w-full max-w-2xl aspect-video">
-          <svg className="w-full h-full" viewBox="0 0 800 400">
+          <svg className="w-full h-full overflow-visible" viewBox="100 0 800 400">
             {/* Edges from L2 to L1 */}
             <line x1="200" y1="300" x2="300" y2="200" stroke={step >= 1 ? '#00f3ff' : '#334155'} strokeWidth="2" className={step >= 1 ? 'animate-[pulse_1.5s_ease-in-out_infinite]' : ''} />
             <line x1="400" y1="300" x2="300" y2="200" stroke={step >= 1 ? '#00f3ff' : '#334155'} strokeWidth="2" className={step >= 1 ? 'animate-[pulse_1.5s_ease-in-out_infinite]' : ''} />
-            <line x1="600" y1="300" x2="500" y2="200" stroke={step >= 1 ? '#00f3ff' : '#334155'} strokeWidth="2" className={step >= 1 ? 'animate-[pulse_1.5s_ease-in-out_infinite]' : ''} />
-            <line x1="800" y1="300" x2="500" y2="200" stroke={step >= 1 ? '#00f3ff' : '#334155'} strokeWidth="2" className={step >= 1 ? 'animate-[pulse_1.5s_ease-in-out_infinite]' : ''} />
-            
+            <line x1="600" y1="300" x2="700" y2="200" stroke={step >= 1 ? '#00f3ff' : '#334155'} strokeWidth="2" className={step >= 1 ? 'animate-[pulse_1.5s_ease-in-out_infinite]' : ''} />
+            <line x1="800" y1="300" x2="700" y2="200" stroke={step >= 1 ? '#00f3ff' : '#334155'} strokeWidth="2" className={step >= 1 ? 'animate-[pulse_1.5s_ease-in-out_infinite]' : ''} />
+
             {/* Edges from L1 to Root */}
-            <line x1="300" y1="200" x2="400" y2="100" stroke={step >= 2 ? '#bc13fe' : '#334155'} strokeWidth="2" className={step >= 2 ? 'animate-[pulse_1.5s_ease-in-out_infinite]' : ''} />
-            <line x1="500" y1="200" x2="400" y2="100" stroke={step >= 2 ? '#bc13fe' : '#334155'} strokeWidth="2" className={step >= 2 ? 'animate-[pulse_1.5s_ease-in-out_infinite]' : ''} />
+            <line x1="300" y1="200" x2="500" y2="100" stroke={step >= 2 ? '#bc13fe' : '#334155'} strokeWidth="2" className={step >= 2 ? 'animate-[pulse_1.5s_ease-in-out_infinite]' : ''} />
+            <line x1="700" y1="200" x2="500" y2="100" stroke={step >= 2 ? '#bc13fe' : '#334155'} strokeWidth="2" className={step >= 2 ? 'animate-[pulse_1.5s_ease-in-out_infinite]' : ''} />
 
             {/* Nodes */}
             {/* L2 (Leaves) */}
@@ -77,13 +77,13 @@ export default function MerkleTree() {
               <circle r="35" fill="#0f172a" stroke={step >= 1 ? "#00f3ff" : "#475569"} strokeWidth="2" />
               <text x="0" y="5" fill="white" fontSize="12" textAnchor="middle" fontFamily="monospace">H(12)</text>
             </g>
-            <g transform="translate(500, 200)" opacity={step >= 1 ? 1 : 0.3} className={step >= 1 ? "transition-opacity duration-500" : ""}>
+            <g transform="translate(700, 200)" opacity={step >= 1 ? 1 : 0.3} className={step >= 1 ? "transition-opacity duration-500" : ""}>
               <circle r="35" fill="#0f172a" stroke={step >= 1 ? "#00f3ff" : "#475569"} strokeWidth="2" />
               <text x="0" y="5" fill="white" fontSize="12" textAnchor="middle" fontFamily="monospace">H(34)</text>
             </g>
 
             {/* Root */}
-            <g transform="translate(400, 100)" opacity={step >= 2 ? 1 : 0.3} className={step >= 2 ? "transition-opacity duration-500" : ""}>
+            <g transform="translate(500, 100)" opacity={step >= 2 ? 1 : 0.3} className={step >= 2 ? "transition-opacity duration-500" : ""}>
               <circle r="45" fill="#0a0f1e" stroke={step >= 2 ? "#bc13fe" : "#475569"} strokeWidth="3" className={step >= 2 ? "shadow-[0_0_20px_rgba(188,19,254,0.5)]" : ""} />
               <text x="0" y="-5" fill="white" fontSize="16" fontWeight="bold" textAnchor="middle">ROOT</text>
               <text x="0" y="15" fill="#bc13fe" fontSize="10" textAnchor="middle" fontFamily="monospace">32 Bytes</text>
@@ -113,7 +113,7 @@ export default function MerkleTree() {
                 <div className="text-green-400 font-bold mb-1">Batch Anchoring Complete</div>
                 <div className="text-sm text-gray-300">
                   4 PQC signatures compressed into 1 Merkle root <span className="text-white font-mono bg-black/50 px-2 py-0.5 rounded">(32 bytes)</span>.
-                  <br/>
+                  <br />
                   <span className="text-neon-cyan mt-1 inline-block">99.2% storage saved vs raw on-chain storage.</span>
                 </div>
               </motion.div>

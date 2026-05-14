@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  LayoutDashboard, 
-  PenTool, 
-  Database, 
-  Network, 
-  Link as LinkIcon, 
-  Cpu, 
-  BarChart3, 
-  Scale, 
-  GitMerge, 
+import {
+  LayoutDashboard,
+  PenTool,
+  Database,
+  Network,
+  Link as LinkIcon,
+  Cpu,
+  BarChart3,
+  Scale,
+  GitMerge,
   ShieldAlert,
   Menu,
   X,
@@ -38,7 +38,7 @@ export default function Layout({ children }) {
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-dark-bg font-sans text-gray-200">
+    <div className="flex h-[100dvh] w-full min-w-0 overflow-hidden bg-dark-bg font-sans text-gray-200">
       {/* Mobile sidebar backdrop */}
       <AnimatePresence>
         {sidebarOpen && (
@@ -73,14 +73,14 @@ export default function Layout({ children }) {
           </button>
         </div>
 
-        <nav className="flex-1 space-y-1 px-4 py-6 overflow-y-auto h-[calc(100vh-4rem)]">
+        <nav className="flex-1 space-y-1 px-4 py-6 overflow-y-auto h-[calc(100dvh-4rem)]">
           <div className="mb-4 px-2 text-xs font-semibold uppercase tracking-wider text-gray-500">
             Modules
           </div>
           {NAV_ITEMS.map((item) => {
             const isActive = location.pathname === item.path;
             const Icon = item.icon;
-            
+
             return (
               <NavLink
                 key={item.path}
@@ -88,8 +88,8 @@ export default function Layout({ children }) {
                 onClick={() => setSidebarOpen(false)}
                 className={cn(
                   "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
-                  isActive 
-                    ? "bg-neon-cyan/10 text-neon-cyan neon-border-cyan border-l-2 border-y-0 border-r-0" 
+                  isActive
+                    ? "bg-neon-cyan/10 text-neon-cyan neon-border-cyan border-l-2 border-y-0 border-r-0"
                     : "text-gray-400 hover:bg-white/5 hover:text-gray-100 border-l-2 border-transparent"
                 )}
               >
@@ -98,7 +98,7 @@ export default function Layout({ children }) {
               </NavLink>
             );
           })}
-          
+
           <div className="mt-8 px-2">
             <div className="rounded-xl border border-neon-purple/20 bg-neon-purple/5 p-4 relative overflow-hidden group">
               <div className="absolute inset-0 bg-gradient-to-br from-neon-purple/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -114,31 +114,31 @@ export default function Layout({ children }) {
       </motion.aside>
 
       {/* Main Content */}
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <header className="flex h-16 items-center justify-between border-b border-white/5 glass px-4 sm:px-6 lg:px-8 relative z-30">
+      <div className="flex flex-1 flex-col min-w-0 w-full overflow-hidden">
+        <header className="flex h-16 shrink-0 w-full items-center justify-between border-b border-white/5 glass px-4 md:px-6 lg:px-8 relative z-30">
           <button
             onClick={toggleSidebar}
             className="text-gray-400 hover:text-white lg:hidden"
           >
             <Menu size={24} />
           </button>
-          
+
           <div className="flex flex-1 items-center justify-end gap-4">
-             <div className="hidden sm:flex items-center gap-4 text-sm font-mono text-gray-400">
-               <div className="flex items-center gap-2">
-                 <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                 Mainnet
-               </div>
-               <div className="h-4 w-px bg-gray-700"></div>
-               <div>Block: <span className="text-neon-cyan">18,492,301</span></div>
-             </div>
+            <div className="hidden sm:flex items-center gap-4 text-sm font-mono text-gray-400">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                Mainnet
+              </div>
+              <div className="h-4 w-px bg-gray-700"></div>
+              <div>Block: <span className="text-neon-cyan">18,492,301</span></div>
+            </div>
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 lg:p-8 relative">
+        <main className="flex-1 min-w-0 w-full overflow-y-auto overflow-x-hidden p-4 md:p-6 lg:p-8 relative">
           {/* Subtle grid overlay for main area */}
           <div className="absolute inset-0 pointer-events-none opacity-5 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
-          
+
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
@@ -146,7 +146,7 @@ export default function Layout({ children }) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
-              className="relative z-10 h-full"
+              className="relative z-10 h-full w-full max-w-full"
             >
               {children}
             </motion.div>
