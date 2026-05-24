@@ -1,20 +1,45 @@
 import React, { useState } from 'react';
-import { Card, Badge, ProgressBar, AnimatedCounter } from '../components/ui';
+import { Card, Badge, AnimatedCounter } from '../components/ui';
 import { Database, UploadCloud, Link as LinkIcon, HardDrive } from 'lucide-react';
 import { motion } from 'framer-motion';
+import axios from 'axios';
 
 export default function IPFSModule() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploaded, setUploaded] = useState(false);
   const [cid, setCid] = useState('');
+  const [error, setError] = useState('');
 
-  const simulateUpload = () => {
+  const handleUpload = async () => {
     setIsUploading(true);
-    setTimeout(() => {
+    setError('');
+    try {
+      const payload = {
+        name: `qsc3_batch_${Date.now()}`,
+        content: {
+          batch: 'Block #18492',
+          transactions: 4096,
+          type: 'Dilithium-3 Signatures',
+          timestamp: new Date().toISOString()
+        }
+      };
+      const res = await axios.post('http://localhost:5000/api/ipfs/upload', payload);
+      if (res.data.success) {
+        setCid(res.data.cid);
+        setUploaded(true);
+      }
+    } catch (err) {
+      setError('Upload failed. Check backend.');
+      console.error(err);
+    } finally {
       setIsUploading(false);
-      setUploaded(true);
-      setCid('QmYwAPJzv5CZsnAzt8auvD9y6mK1y5t2z8a9XvB4cD3eF2');
-    }, 2000);
+    }
+  };
+
+  const resetUpload = () => {
+    setUploaded(false);
+    setCid('');
+    setError('');
   };
 
   return (
@@ -30,24 +55,30 @@ export default function IPFSModule() {
             <Database size={300} />
           </div>
           <h2 className="text-xl font-semibold text-white mb-4 relative z-10">Data & Signature Upload</h2>
-          
+
           <div className="bg-black/40 border border-white/10 rounded-xl p-6 relative z-10">
             <div className="flex justify-between items-center mb-6">
-               <div className="flex items-center gap-3">
-                 <div className="p-2 bg-neon-purple/10 rounded-lg text-neon-purple">
-                   <HardDrive size={20} />
-                 </div>
-                 <div>
-                   <div className="text-sm font-medium text-gray-200">Pending Batch: Block #18492</div>
-                   <div className="text-xs text-gray-500">4,096 Transactions + Dilithium Sigs (13.5 MB)</div>
-                 </div>
-               </div>
-               <Badge variant="cyan">READY</Badge>
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-neon-purple/10 rounded-lg text-neon-purple">
+                  <HardDrive size={20} />
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-gray-200">Pending Batch: Block #18492</div>
+                  <div className="text-xs text-gray-500">4,096 Transactions + Dilithium Sigs (13.5 MB)</div>
+                </div>
+              </div>
+              <Badge variant="cyan">READY</Badge>
             </div>
 
+            {error && (
+              <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
+                {error}
+              </div>
+            )}
+
             {!isUploading && !uploaded ? (
-              <button 
-                onClick={simulateUpload}
+              <button
+                onClick={handleUpload}
                 className="w-full py-4 bg-neon-cyan/20 hover:bg-neon-cyan/30 text-neon-cyan font-bold rounded-lg border border-neon-cyan/50 transition-all flex justify-center items-center gap-2"
               >
                 <UploadCloud size={20} />
@@ -56,33 +87,41 @@ export default function IPFSModule() {
             ) : isUploading ? (
               <div className="space-y-3 py-2">
                 <div className="flex justify-between text-sm text-neon-cyan">
-                  <span>Uploading to IPFS network...</span>
+                  <span>Uploading to Pinata IPFS...</span>
                   <span className="animate-pulse">Pinning...</span>
                 </div>
                 <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
-                  <div className="bg-neon-cyan h-2 rounded-full w-full animate-[scan_2s_ease-in-out_infinite]" style={{ transformOrigin: 'left' }}></div>
+                  <div className="bg-neon-cyan h-2 rounded-full w-full animate-pulse"></div>
                 </div>
               </div>
             ) : (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 className="bg-green-500/10 border border-green-500/30 rounded-lg p-5"
               >
                 <div className="text-green-400 font-medium mb-3 flex items-center gap-2">
-                   <CheckCircle size={18} /> Off-chain Storage Successful
+                  <CheckCircle size={18} /> Off-chain Storage Successful
                 </div>
                 <div className="space-y-3">
                   <div>
                     <div className="text-xs text-gray-500 mb-1 uppercase tracking-wider">Content Identifier (CID)</div>
                     <div className="bg-black/50 p-3 rounded font-mono text-sm text-neon-cyan border border-white/5 flex justify-between items-center">
                       {cid}
-                      <LinkIcon size={14} className="text-gray-500 cursor-pointer hover:text-white" />
+                      <a href={`https://gateway.pinata.cloud/ipfs/${cid}`} target="_blank" rel="noreferrer">
+                        <LinkIcon size={14} className="text-gray-500 cursor-pointer hover:text-white" />
+                      </a>
                     </div>
                   </div>
                   <div className="text-sm text-gray-400">
                     This 46-byte hash is all that needs to be anchored on-chain, completely bypassing the 13.5MB PQC storage bottleneck.
                   </div>
+                  <button
+                    onClick={resetUpload}
+                    className="text-xs text-gray-500 hover:text-white underline mt-2"
+                  >
+                    Upload Another Batch
+                  </button>
                 </div>
               </motion.div>
             )}
@@ -120,7 +159,7 @@ export default function IPFSModule() {
               </div>
               <div className="w-full bg-slate-800 rounded-full h-3">
                 <div className="bg-neon-cyan h-3 rounded-full relative" style={{ width: '5%' }}>
-                   <div className="absolute -right-1 -top-1 w-5 h-5 bg-neon-cyan rounded-full animate-ping opacity-20"></div>
+                  <div className="absolute -right-1 -top-1 w-5 h-5 bg-neon-cyan rounded-full animate-ping opacity-20"></div>
                 </div>
               </div>
               <div className="mt-3 text-right">
@@ -134,7 +173,6 @@ export default function IPFSModule() {
   );
 }
 
-// Just adding CheckCircle inline as it's missing in imports above
 const CheckCircle = ({ size, className }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>

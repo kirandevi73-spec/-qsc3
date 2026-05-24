@@ -1,24 +1,45 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Badge, ProgressBar } from '../components/ui';
+import { Card, Badge } from '../components/ui';
 import { Cpu, Activity, Zap, Shield } from 'lucide-react';
+import axios from 'axios';
 
 export default function IoTMonitor() {
   const [cpu, setCpu] = useState(35);
   const [memory, setMemory] = useState(62);
+  const [devices, setDevices] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Simulate live IoT metrics
+  // Fetch real IoT data from backend
   useEffect(() => {
-    const interval = setInterval(() => {
+    const fetchDevices = async () => {
+      try {
+        const res = await axios.get('http://localhost:5000/api/iot/live');
+        setDevices(res.data.devices);
+        setLoading(false);
+      } catch (err) {
+        console.error('IoT fetch error:', err);
+        setLoading(false);
+      }
+    };
+
+    fetchDevices();
+    const dataInterval = setInterval(fetchDevices, 5000);
+
+    const metricsInterval = setInterval(() => {
       setCpu(prev => {
         const next = prev + (Math.random() * 10 - 5);
-        return Math.min(Math.max(next, 30), 45); // Keep between 30-45%
+        return Math.min(Math.max(next, 30), 45);
       });
       setMemory(prev => {
         const next = prev + (Math.random() * 4 - 2);
-        return Math.min(Math.max(next, 58), 72); // Keep between 58-72%
+        return Math.min(Math.max(next, 58), 72);
       });
     }, 2000);
-    return () => clearInterval(interval);
+
+    return () => {
+      clearInterval(dataInterval);
+      clearInterval(metricsInterval);
+    };
   }, []);
 
   return (
@@ -34,7 +55,7 @@ export default function IoTMonitor() {
           <div className="absolute top-0 right-0 p-6 opacity-10 pointer-events-none">
             <Cpu size={80} />
           </div>
-          
+
           <div className="flex justify-between items-start mb-6">
             <div>
               <h2 className="text-xl font-bold text-white">ESP32-S3 Node</h2>
@@ -56,7 +77,7 @@ export default function IoTMonitor() {
 
             <div>
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-gray-300 flex items-center gap-1"><Database size={14} className="text-neon-purple" /> Memory Used</span>
+                <span className="text-gray-300 flex items-center gap-1"><DatabaseIcon size={14} className="text-neon-purple" /> Memory Used</span>
                 <span className="text-neon-purple font-mono">{memory.toFixed(1)}%</span>
               </div>
               <div className="w-full bg-slate-800 rounded-full h-2">
@@ -132,17 +153,50 @@ export default function IoTMonitor() {
               </tbody>
             </table>
           </div>
-          <div className="mt-4 text-xs text-gray-500">
+          <p className="mt-4 text-xs text-gray-500">
             * Falcon-512 requires floating-point operations which stress the ESP32. SPHINCS+ causes Out-of-Memory (OOM) due to massive signature sizes (up to 49KB).
-          </div>
+          </p>
         </Card>
       </div>
+
+      {/* Live Devices from Backend */}
+      <Card>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold text-white">Live Device Feed</h2>
+          <Badge variant="green">{loading ? 'Loading...' : `${devices.length} Devices`}</Badge>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-white/5 text-gray-400 border-b border-white/10">
+              <tr>
+                <th className="p-3">Device ID</th>
+                <th className="p-3">Temp (°C)</th>
+                <th className="p-3">Humidity (%)</th>
+                <th className="p-3">Pressure (hPa)</th>
+                <th className="p-3">Signature</th>
+                <th className="p-3">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5 text-gray-300">
+              {devices.map((device, i) => (
+                <tr key={i} className="hover:bg-white/5 transition-colors">
+                  <td className="p-3 font-mono text-neon-cyan">{device.deviceId}</td>
+                  <td className="p-3 font-mono">{device.temperature}</td>
+                  <td className="p-3 font-mono">{device.humidity}</td>
+                  <td className="p-3 font-mono">{device.pressure}</td>
+                  <td className="p-3 font-mono text-xs text-gray-500">{device.signature.slice(0, 20)}...</td>
+                  <td className="p-3"><Badge variant="green">VERIFIED</Badge></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
     </div>
   );
 }
 
-// Inline missing icon
-const Database = ({ size, className }) => (
+const DatabaseIcon = ({ size, className }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
     <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
     <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>

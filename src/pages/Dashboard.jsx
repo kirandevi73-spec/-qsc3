@@ -1,10 +1,25 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, Badge, AnimatedCounter } from '../components/ui';
-import { Database, Zap, ShieldCheck, Box, Server, Activity } from 'lucide-react';
+import { Zap, ShieldCheck, Box, Server, Activity } from 'lucide-react';
 import { useWallet } from '../hooks/useWallet';
+import axios from 'axios';
 
 export default function Dashboard() {
   const { account, connected, connectWallet, disconnectWallet } = useWallet();
+  const [serverStatus, setServerStatus] = useState('checking...');
+  const [deviceCount, setDeviceCount] = useState(0);
+
+  useEffect(() => {
+    // Health check
+    axios.get('http://localhost:5000/api/health')
+      .then(res => setServerStatus(res.data.status))
+      .catch(() => setServerStatus('offline'));
+
+    // IoT device count
+    axios.get('http://localhost:5000/api/iot/live')
+      .then(res => setDeviceCount(res.data.devices.length))
+      .catch(() => setDeviceCount(0));
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -90,8 +105,8 @@ export default function Dashboard() {
             <Server size={24} />
           </div>
           <div>
-            <div className="text-sm text-gray-400">Active Nodes</div>
-            <div className="text-xl font-bold font-mono text-gray-100"><AnimatedCounter value={1284} /></div>
+            <div className="text-sm text-gray-400">Live IoT Devices</div>
+            <div className="text-xl font-bold font-mono text-gray-100">{deviceCount}</div>
           </div>
         </Card>
 
@@ -126,8 +141,10 @@ export default function Dashboard() {
               <Badge variant="cyan">ONLINE</Badge>
             </div>
             <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg border border-white/5">
-              <span className="text-gray-300">Merkle Root Anchoring</span>
-              <Badge variant="cyan">SYNCED</Badge>
+              <span className="text-gray-300">Backend Server</span>
+              <Badge variant={serverStatus === 'OK' ? 'green' : 'red'}>
+                {serverStatus === 'OK' ? 'ONLINE' : serverStatus.toUpperCase()}
+              </Badge>
             </div>
           </div>
         </Card>
