@@ -9,6 +9,10 @@ const low = require('lowdb');
 const FileSync = require('lowdb/adapters/FileSync');
 const ipfsRoutes = require('./routes/ipfs');
 const iotRoutes = require('./routes/iot');
+const pqcRoutes = require('./routes/pqc');
+const merkleRoutes = require('./routes/merkle');
+const blockchainRoutes = require('./routes/blockchain');
+const analyticsRoutes = require('./routes/analytics');
 
 const adapter = new FileSync('db.json');
 const db = low(adapter);
@@ -27,6 +31,10 @@ app.use(express.json());
 
 app.use('/api/ipfs', ipfsRoutes);
 app.use('/api/iot', iotRoutes);
+app.use('/api/pqc', pqcRoutes);
+app.use('/api/merkle', merkleRoutes);
+app.use('/api/blockchain', blockchainRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 app.get('/api/health', (req, res) => {
   res.status(200).json({

@@ -1,41 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Badge } from '../components/ui';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, AreaChart, Area, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
-
-const latencyData = [
-  { name: 'Mon', gen: 3.2, verify: 2.1 },
-  { name: 'Tue', gen: 3.5, verify: 2.4 },
-  { name: 'Wed', gen: 3.3, verify: 2.2 },
-  { name: 'Thu', gen: 3.6, verify: 2.5 },
-  { name: 'Fri', gen: 3.4, verify: 2.3 },
-  { name: 'Sat', gen: 3.1, verify: 2.0 },
-  { name: 'Sun', gen: 3.5, verify: 2.4 },
-];
-
-const storageData = [
-  { name: 'Batch 1', raw: 12.5, qsc3: 0.8 },
-  { name: 'Batch 2', raw: 25.0, qsc3: 1.2 },
-  { name: 'Batch 3', raw: 40.5, qsc3: 0.7 },
-  { name: 'Batch 4', raw: 35.2, qsc3: 0.9 },
-  { name: 'Batch 5', raw: 55.0, qsc3: 1.5 },
-];
-
-const gasData = [
-  { name: 'Jan', trad: 28, qsc3: 8.4 },
-  { name: 'Feb', trad: 35, qsc3: 8.4 },
-  { name: 'Mar', trad: 42, qsc3: 8.4 },
-  { name: 'Apr', trad: 55, qsc3: 12.5 },
-  { name: 'May', trad: 68, qsc3: 15.2 },
-];
-
-const securityData = [
-  { subject: 'Shor\'s Algo Resistance', trad: 20, qsc3: 100, fullMark: 100 },
-  { subject: 'Grover\'s Algo Resistance', trad: 50, qsc3: 95, fullMark: 100 },
-  { subject: 'Side-Channel Resistance', trad: 80, qsc3: 85, fullMark: 100 },
-  { subject: 'Storage Efficiency', trad: 95, qsc3: 90, fullMark: 100 },
-  { subject: 'Gas Efficiency', trad: 90, qsc3: 85, fullMark: 100 },
-  { subject: 'Compute Overhead', trad: 95, qsc3: 75, fullMark: 100 },
-];
+import axios from 'axios';
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
@@ -56,6 +22,27 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 export default function Analytics() {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    axios.get('http://localhost:5000/api/analytics/stats')
+      .then(res => {
+        setData(res.data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error(err);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) return (
+    <div className="flex items-center justify-center h-96">
+      <div className="w-8 h-8 border-2 border-neon-cyan border-t-transparent rounded-full animate-spin"></div>
+    </div>
+  );
+
   return (
     <div className="space-y-6">
       <div>
@@ -69,7 +56,7 @@ export default function Analytics() {
           <h2 className="text-lg font-semibold text-white mb-4">Dilithium-3 Latency (ms)</h2>
           <div className="h-72 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={latencyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <BarChart data={data?.latency} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
                 <XAxis dataKey="name" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
                 <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
@@ -87,7 +74,7 @@ export default function Analytics() {
           <h2 className="text-lg font-semibold text-white mb-4">Security & Efficiency Matrix</h2>
           <div className="h-72 w-full relative -mt-4">
             <ResponsiveContainer width="100%" height="100%">
-              <RadarChart cx="50%" cy="50%" outerRadius="70%" data={securityData}>
+              <RadarChart cx="50%" cy="50%" outerRadius="70%" data={data?.security}>
                 <PolarGrid stroke="#ffffff10" />
                 <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 10 }} />
                 <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
@@ -103,20 +90,20 @@ export default function Analytics() {
         {/* Storage Chart */}
         <Card>
           <div className="flex justify-between items-center mb-4">
-             <h2 className="text-lg font-semibold text-white">Storage Requirements (MB)</h2>
-             <Badge variant="cyan">94% Savings</Badge>
+            <h2 className="text-lg font-semibold text-white">Storage Requirements (MB)</h2>
+            <Badge variant="cyan">94% Savings</Badge>
           </div>
           <div className="h-72 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={storageData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <AreaChart data={data?.storage} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorRaw" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#f43f5e" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="colorQsc3" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#00f3ff" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#00f3ff" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#00f3ff" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#00f3ff" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
@@ -134,20 +121,20 @@ export default function Analytics() {
         {/* Gas Chart */}
         <Card>
           <div className="flex justify-between items-center mb-4">
-             <h2 className="text-lg font-semibold text-white">Gas Consumption Cost (USD)</h2>
-             <Badge variant="purple">70% Savings</Badge>
+            <h2 className="text-lg font-semibold text-white">Gas Consumption Cost (USD)</h2>
+            <Badge variant="purple">70% Savings</Badge>
           </div>
           <div className="h-72 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={gasData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <AreaChart data={data?.gas} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorTrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#f43f5e" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="colorQsc3Gas" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#bc13fe" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#bc13fe" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#bc13fe" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#bc13fe" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
@@ -155,13 +142,12 @@ export default function Analytics() {
                 <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
                 <RechartsTooltip content={<CustomTooltip />} />
                 <Legend iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
-                <Area type="monotone" dataKey="trad" name="Traditional (Raw PQC On-Chain)" stroke="#f43f5e" strokeWidth={2} fillOpacity={1} fill="url(#colorTrad)" />
-                <Area type="monotone" dataKey="qsc3" name="QSC3 (On-Chain Hash Only)" stroke="#bc13fe" strokeWidth={2} fillOpacity={1} fill="url(#colorQsc3Gas)" />
+                <Area type="monotone" dataKey="trad" name="Traditional (Raw PQC)" stroke="#f43f5e" strokeWidth={2} fillOpacity={1} fill="url(#colorTrad)" />
+                <Area type="monotone" dataKey="qsc3" name="QSC3 (Hash Only)" stroke="#bc13fe" strokeWidth={2} fillOpacity={1} fill="url(#colorQsc3Gas)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </Card>
-
       </div>
     </div>
   );

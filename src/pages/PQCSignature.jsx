@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { Card, Badge, ProgressBar } from '../components/ui';
 import { Upload, FileText, CheckCircle, Shield, AlertTriangle } from 'lucide-react';
 import { motion } from 'framer-motion';
+import axios from 'axios';
 
 export default function PQCSignature() {
   const [file, setFile] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
   const [signatureDone, setSignatureDone] = useState(false);
+  const [signatureData, setSignatureData] = useState(null);
 
   const handleUpload = (e) => {
     e.preventDefault();
@@ -15,22 +17,41 @@ export default function PQCSignature() {
     setIsGenerating(false);
     setProgress(0);
     setSignatureDone(false);
+    setSignatureData(null);
   };
 
-  const generateSignature = () => {
+  const generateSignature = async () => {
     setIsGenerating(true);
+    setProgress(0);
+
+    // Progress animation
     let current = 0;
     const interval = setInterval(() => {
       current += 10;
       setProgress(current);
-      if (current >= 100) {
-        clearInterval(interval);
-        setTimeout(() => {
-          setIsGenerating(false);
-          setSignatureDone(true);
-        }, 500);
-      }
+      if (current >= 90) clearInterval(interval);
     }, 200);
+
+    try {
+      const res = await axios.post('http://localhost:5000/api/pqc/sign', {
+        filename: file.name,
+        size: file.size
+      });
+
+      clearInterval(interval);
+      setProgress(100);
+
+      setTimeout(() => {
+        setIsGenerating(false);
+        setSignatureDone(true);
+        setSignatureData(res.data.signature);
+      }, 500);
+
+    } catch (err) {
+      clearInterval(interval);
+      setIsGenerating(false);
+      console.error('Signature error:', err);
+    }
   };
 
   return (
@@ -41,14 +62,13 @@ export default function PQCSignature() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Generator Section */}
         <Card>
           <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
             <Shield className="text-neon-purple" size={20} /> Sign Data
           </h2>
-          
+
           {!file ? (
-            <div 
+            <div
               className="border-2 border-dashed border-gray-700 rounded-xl p-8 text-center hover:border-neon-cyan/50 hover:bg-neon-cyan/5 transition-all cursor-pointer"
               onClick={handleUpload}
             >
@@ -66,10 +86,7 @@ export default function PQCSignature() {
                     <div className="text-xs text-gray-500">{file.size}</div>
                   </div>
                 </div>
-                <button 
-                  onClick={() => setFile(null)}
-                  className="text-xs text-red-400 hover:text-red-300"
-                >
+                <button onClick={() => setFile(null)} className="text-xs text-red-400 hover:text-red-300">
                   Remove
                 </button>
               </div>
@@ -77,7 +94,7 @@ export default function PQCSignature() {
               {!isGenerating && !signatureDone && (
                 <button
                   onClick={generateSignature}
-                  className="w-full py-3 bg-neon-purple/20 hover:bg-neon-purple/30 text-neon-purple font-semibold rounded-lg border border-neon-purple/50 transition-all shadow-[0_0_15px_rgba(188,19,254,0.15)]"
+                  className="w-full py-3 bg-neon-purple/20 hover:bg-neon-purple/30 text-neon-purple font-semibold rounded-lg border border-neon-purple/50 transition-all"
                 >
                   Generate Dilithium-3 Signature
                 </button>
@@ -89,8 +106,8 @@ export default function PQCSignature() {
                 </div>
               )}
 
-              {signatureDone && (
-                <motion.div 
+              {signatureDone && signatureData && (
+                <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="p-4 bg-green-500/10 border border-green-500/30 rounded-lg space-y-3"
@@ -98,22 +115,45 @@ export default function PQCSignature() {
                   <div className="flex items-center gap-2 text-green-400 font-medium">
                     <CheckCircle size={18} /> Signature Generated Successfully
                   </div>
-                  <div className="bg-black/50 p-3 rounded font-mono text-xs text-gray-400 break-all border border-white/5 h-24 overflow-y-auto custom-scrollbar">
-                    0x7a3f8c9d2e1b4a6f5e8d7c9b2a1f4e6d8c7b9a2f1e4d6c5b8a7f9e1d2c4b6a8f...
-                    [Dilithium-3 Signature - 3,293 bytes]...
+                  <div className="bg-black/50 p-3 rounded font-mono text-xs text-gray-400 break-all border border-white/5 h-24 overflow-y-auto">
+                    {signatureData.signatureHex}
+                    <br />
+                    [Dilithium-3 Signature - {signatureData.signatureSize}]
                   </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="bg-black/30 p-2 rounded">
+                      <span className="text-gray-500">Key Gen:</span>
+                      <span className="text-neon-cyan ml-1">{signatureData.keyGenTime}</span>
+                    </div>
+                    <div className="bg-black/30 p-2 rounded">
+                      <span className="text-gray-500">Sign Time:</span>
+                      <span className="text-neon-cyan ml-1">{signatureData.signTime}</span>
+                    </div>
+                    <div className="bg-black/30 p-2 rounded">
+                      <span className="text-gray-500">Verify:</span>
+                      <span className="text-neon-cyan ml-1">{signatureData.verifyTime}</span>
+                    </div>
+                    <div className="bg-black/30 p-2 rounded">
+                      <span className="text-gray-500">Status:</span>
+                      <span className="text-green-400 ml-1">VERIFIED ✓</span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => { setFile(null); setSignatureDone(false); setSignatureData(null); }}
+                    className="text-xs text-gray-500 hover:text-white underline"
+                  >
+                    Sign Another File
+                  </button>
                 </motion.div>
               )}
             </div>
           )}
         </Card>
 
-        {/* Metrics Section */}
         <Card className="glass-strong">
           <h2 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
             <AlertTriangle className="text-yellow-500" size={20} /> The Storage Challenge
           </h2>
-          
           <div className="space-y-6">
             <div>
               <h3 className="text-sm text-gray-400 mb-3">Signature Size Comparison</h3>
@@ -124,7 +164,6 @@ export default function PQCSignature() {
                 <ProgressBar progress={100} color="bg-red-500" label="Dilithium-5" valueText="4,595 Bytes" />
               </div>
             </div>
-
             <div className="pt-4 border-t border-white/10">
               <h3 className="text-sm text-gray-400 mb-3">Performance Metrics (Dilithium-3)</h3>
               <div className="grid grid-cols-2 gap-4">
