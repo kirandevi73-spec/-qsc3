@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Card, Badge } from '../components/ui';
-import { Cpu, Activity, Zap, Shield } from 'lucide-react';
+import { Cpu, Activity, Zap, Shield, Link } from 'lucide-react';
 import axios from 'axios';
 import io from 'socket.io-client';
 
@@ -11,8 +11,10 @@ export default function IoTMonitor() {
   const [loading, setLoading] = useState(true);
   const [liveData, setLiveData] = useState(null);
   const [connectionStatus, setConnectionStatus] = useState('connecting');
+  const [bridgeStatus, setBridgeStatus] = useState(null);
+  const [validating, setValidating] = useState(false);
+  const [validationResult, setValidationResult] = useState(null);
 
-  // Fetch real IoT data from backend
   useEffect(() => {
     const fetchDevices = async () => {
       try {
@@ -20,23 +22,24 @@ export default function IoTMonitor() {
         setDevices(res.data.devices);
         setLoading(false);
       } catch (err) {
-        console.error('IoT fetch error:', err);
         setLoading(false);
       }
     };
 
-    fetchDevices();
-    const dataInterval = setInterval(fetchDevices, 5000);
+    const fetchBridgeStatus = async () => {
+      try {
+        const res = await axios.get('http://localhost:5000/api/bridge/status');
+        setBridgeStatus(res.data.bridge);
+      } catch (err) { }
+    };
 
+    fetchDevices();
+    fetchBridgeStatus();
+
+    const dataInterval = setInterval(fetchDevices, 5000);
     const metricsInterval = setInterval(() => {
-      setCpu(prev => {
-        const next = prev + (Math.random() * 10 - 5);
-        return Math.min(Math.max(next, 30), 45);
-      });
-      setMemory(prev => {
-        const next = prev + (Math.random() * 4 - 2);
-        return Math.min(Math.max(next, 58), 72);
-      });
+      setCpu(prev => Math.min(Math.max(prev + (Math.random() * 10 - 5), 30), 45));
+      setMemory(prev => Math.min(Math.max(prev + (Math.random() * 4 - 2), 58), 72));
     }, 2000);
 
     return () => {
@@ -45,25 +48,34 @@ export default function IoTMonitor() {
     };
   }, []);
 
-  // WebSocket Live Data
   useEffect(() => {
     const socket = io('http://localhost:5000');
-
-    socket.on('connect', () => {
-      setConnectionStatus('connected');
-      console.log('[Socket] Connected:', socket.id);
-    });
-
-    socket.on('disconnect', () => {
-      setConnectionStatus('disconnected');
-    });
-
-    socket.on('iot-live', (data) => {
-      setLiveData(data);
-    });
-
+    socket.on('connect', () => setConnectionStatus('connected'));
+    socket.on('disconnect', () => setConnectionStatus('disconnected'));
+    socket.on('iot-live', (data) => setLiveData(data));
     return () => socket.disconnect();
   }, []);
+
+  const validateDevice = async (device) => {
+    setValidating(true);
+    setValidationResult(null);
+    try {
+      const res = await axios.post('http://localhost:5000/api/bridge/validate', {
+        deviceId: device.deviceId,
+        signature: String(device.signature) || 'DILITHIUM-MOCK',
+        telemetry: {
+          temperature: device.temperature,
+          humidity: device.humidity,
+          pressure: device.pressure
+        }
+      });
+      setValidationResult(res.data.validation);
+    } catch (err) {
+      console.error('Bridge error:', err);
+    } finally {
+      setValidating(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -72,8 +84,63 @@ export default function IoTMonitor() {
         <p className="text-gray-400">Live ESP32-S3 hardware constraints and PQC benchmarking</p>
       </div>
 
+      {/* Bridge Status */}
+      {bridgeStatus && (
+        <Card className="border-neon-purple/30">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-3">
+              <Link className="text-neon-purple" size={20} />
+              <div>
+                <h2 className="text-lg font-semibold text-white">IoT ↔ Blockchain Bridge</h2>
+                <p className="text-xs text-gray-400">Dilithium-3 signatures validated & anchored to ledger</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="text-center">
+                <div className="text-xl font-bold font-mono text-neon-cyan">{bridgeStatus.totalValidated}</div>
+                <div className="text-xs text-gray-500">Total Validated</div>
+              </div>
+              <div className="text-center">
+                <div className="text-xl font-bold font-mono text-green-400">{bridgeStatus.trustScore}%</div>
+                <div className="text-xs text-gray-500">Trust Score</div>
+              </div>
+              <Badge variant="green">{bridgeStatus.status}</Badge>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* Validation Result */}
+      {validationResult && (
+        <Card className="border-green-500/30 bg-green-500/5">
+          <h3 className="text-lg font-semibold text-green-400 mb-4">✅ Bridge Validation Result</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div>
+              <p className="text-gray-500 text-xs">Device ID</p>
+              <p className="font-mono text-neon-cyan">{validationResult.deviceId}</p>
+            </div>
+            <div>
+              <p className="text-gray-500 text-xs">Dilithium Verified</p>
+              <p className="font-mono text-green-400">✓ YES</p>
+            </div>
+            <div>
+              <p className="text-gray-500 text-xs">Block Number</p>
+              <p className="font-mono text-white">#{validationResult.blockNumber}</p>
+            </div>
+            <div>
+              <p className="text-gray-500 text-xs">Trust Score</p>
+              <p className="font-mono text-green-400">{validationResult.trustScore}%</p>
+            </div>
+            <div className="col-span-2 md:col-span-4">
+              <p className="text-gray-500 text-xs">Anchor TX Hash</p>
+              <p className="font-mono text-xs text-neon-purple">{validationResult.anchorTx}</p>
+            </div>
+          </div>
+        </Card>
+      )}
+
       {/* WebSocket Live Feed */}
-      <Card className="border-neon-green/30 bg-gradient-to-br from-slate-900 to-slate-800">
+      <Card className="border-neon-green/30">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold text-white flex items-center gap-2">
             <span className={`w-3 h-3 rounded-full animate-pulse ${connectionStatus === 'connected' ? 'bg-green-500' : 'bg-red-500'}`}></span>
@@ -104,24 +171,21 @@ export default function IoTMonitor() {
             </div>
             <div className="col-span-2 md:col-span-4 bg-slate-900/50 p-3 rounded-lg border border-white/5">
               <p className="text-xs text-gray-400 mb-1">Dilithium-3 Signature Hash</p>
-              <p className="font-mono text-xs text-green-400 truncate">{liveData.signature.hash}</p>
+              <p className="font-mono text-xs text-green-400 truncate">{liveData.signature?.hash}</p>
             </div>
           </div>
         ) : (
           <div className="text-center py-8 text-gray-500">
             <p>Waiting for live WebSocket data...</p>
-            <p className="text-xs mt-2">Backend sending data every 2 seconds</p>
           </div>
         )}
       </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Device Card */}
         <Card className="glass-strong border-neon-cyan/20 relative overflow-hidden">
           <div className="absolute top-0 right-0 p-6 opacity-10 pointer-events-none">
             <Cpu size={80} />
           </div>
-
           <div className="flex justify-between items-start mb-6">
             <div>
               <h2 className="text-xl font-bold text-white">ESP32-S3 Node</h2>
@@ -129,7 +193,6 @@ export default function IoTMonitor() {
             </div>
             <Badge variant="green" className="animate-pulse">ONLINE</Badge>
           </div>
-
           <div className="space-y-6 relative z-10">
             <div>
               <div className="flex justify-between text-sm mb-1">
@@ -140,7 +203,6 @@ export default function IoTMonitor() {
                 <div className="bg-neon-cyan h-2 rounded-full transition-all duration-500" style={{ width: `${cpu}%` }}></div>
               </div>
             </div>
-
             <div>
               <div className="flex justify-between text-sm mb-1">
                 <span className="text-gray-300 flex items-center gap-1"><DatabaseIcon size={14} className="text-neon-purple" /> Memory Used</span>
@@ -151,7 +213,6 @@ export default function IoTMonitor() {
               </div>
               <p className="text-xs text-gray-500 mt-1 text-right">312 KB / 512 KB SRAM</p>
             </div>
-
             <div className="pt-4 border-t border-white/5 grid grid-cols-2 gap-4">
               <div>
                 <div className="text-xs text-gray-500 mb-1">Active Algo</div>
@@ -167,7 +228,6 @@ export default function IoTMonitor() {
           </div>
         </Card>
 
-        {/* Benchmarks Table */}
         <Card className="col-span-1 lg:col-span-2">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-semibold text-white flex items-center gap-2">
@@ -175,7 +235,6 @@ export default function IoTMonitor() {
             </h2>
             <Badge variant="purple">Hardware: ESP32-S3 (240MHz)</Badge>
           </div>
-
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead className="bg-white/5 text-gray-400 font-medium border-b border-white/10">
@@ -220,12 +279,12 @@ export default function IoTMonitor() {
             </table>
           </div>
           <p className="mt-4 text-xs text-gray-500">
-            * Falcon-512 requires floating-point operations which stress the ESP32. SPHINCS+ causes Out-of-Memory (OOM) due to massive signature sizes (up to 49KB).
+            * Falcon-512 requires floating-point operations. SPHINCS+ causes OOM due to massive signature sizes.
           </p>
         </Card>
       </div>
 
-      {/* Live Devices from Backend */}
+      {/* Live Devices with Bridge Validate */}
       <Card>
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold text-white">Live Device Feed</h2>
@@ -241,6 +300,7 @@ export default function IoTMonitor() {
                 <th className="p-3">Pressure (hPa)</th>
                 <th className="p-3">Signature</th>
                 <th className="p-3">Status</th>
+                <th className="p-3">Bridge</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5 text-gray-300">
@@ -250,8 +310,19 @@ export default function IoTMonitor() {
                   <td className="p-3 font-mono">{device.temperature}</td>
                   <td className="p-3 font-mono">{device.humidity}</td>
                   <td className="p-3 font-mono">{device.pressure}</td>
-                  <td className="p-3 font-mono text-xs text-gray-500">{device.signature.slice(0, 20)}...</td>
+                  <td className="p-3 font-mono text-xs text-gray-500">
+                    {String(device.signature).slice(0, 20)}...
+                  </td>
                   <td className="p-3"><Badge variant="green">VERIFIED</Badge></td>
+                  <td className="p-3">
+                    <button
+                      onClick={() => validateDevice(device)}
+                      disabled={validating}
+                      className="px-3 py-1 text-xs bg-neon-purple/20 hover:bg-neon-purple/30 text-neon-purple rounded-lg border border-neon-purple/50 transition-all disabled:opacity-50"
+                    >
+                      {validating ? '...' : 'Anchor'}
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>

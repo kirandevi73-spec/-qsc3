@@ -17,6 +17,7 @@ const merkleRoutes = require('./routes/merkle');
 const blockchainRoutes = require('./routes/blockchain');
 const analyticsRoutes = require('./routes/analytics');
 const authRoutes = require('./routes/auth');
+const bridgeRoutes = require('./routes/bridge');
 
 const adapter = new FileSync('db.json');
 const db = low(adapter);
@@ -48,6 +49,7 @@ app.use('/api/pqc', pqcRoutes);
 app.use('/api/merkle', merkleRoutes);
 app.use('/api/blockchain', blockchainRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/bridge', bridgeRoutes);
 
 let iotCounter = 0;
 setInterval(() => {

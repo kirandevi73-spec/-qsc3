@@ -7,6 +7,12 @@
       "password": "$2a$10$2HOU.Lf2NSIY6kIstdDXEes3kk1U6aYKOWimpL8UhnTlpuyP5y9/G",
       "type": "email",
       "createdAt": "2026-05-26T15:40:34.106Z"
+    },
+    {
+      "id": "7090f4d2-098d-4091-a09a-01195ea5250d",
+      "address": "0x70997970c51812dc3a010c7d01b50e0d17dc79c8",
+      "type": "wallet",
+      "createdAt": "2026-05-27T11:17:28.376Z"
     }
   ],
   "iotData": []
