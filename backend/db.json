@@ -1,5 +1,13 @@
 {
   "files": [],
-  "users": [],
+  "users": [
+    {
+      "id": "7d04b0fe-54b3-401d-8654-c8883109e86a",
+      "email": "kiran@gmail.com",
+      "password": "$2a$10$2HOU.Lf2NSIY6kIstdDXEes3kk1U6aYKOWimpL8UhnTlpuyP5y9/G",
+      "type": "email",
+      "createdAt": "2026-05-26T15:40:34.106Z"
+    }
+  ],
   "iotData": []
 }

@@ -2,12 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { Card, Badge } from '../components/ui';
 import { Cpu, Activity, Zap, Shield } from 'lucide-react';
 import axios from 'axios';
+import io from 'socket.io-client';
 
 export default function IoTMonitor() {
   const [cpu, setCpu] = useState(35);
   const [memory, setMemory] = useState(62);
   const [devices, setDevices] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [liveData, setLiveData] = useState(null);
+  const [connectionStatus, setConnectionStatus] = useState('connecting');
 
   // Fetch real IoT data from backend
   useEffect(() => {
@@ -42,12 +45,75 @@ export default function IoTMonitor() {
     };
   }, []);
 
+  // WebSocket Live Data
+  useEffect(() => {
+    const socket = io('http://localhost:5000');
+
+    socket.on('connect', () => {
+      setConnectionStatus('connected');
+      console.log('[Socket] Connected:', socket.id);
+    });
+
+    socket.on('disconnect', () => {
+      setConnectionStatus('disconnected');
+    });
+
+    socket.on('iot-live', (data) => {
+      setLiveData(data);
+    });
+
+    return () => socket.disconnect();
+  }, []);
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold font-mono tracking-tight text-white mb-2">IoT <span className="neon-text-cyan">Monitor</span></h1>
         <p className="text-gray-400">Live ESP32-S3 hardware constraints and PQC benchmarking</p>
       </div>
+
+      {/* WebSocket Live Feed */}
+      <Card className="border-neon-green/30 bg-gradient-to-br from-slate-900 to-slate-800">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+            <span className={`w-3 h-3 rounded-full animate-pulse ${connectionStatus === 'connected' ? 'bg-green-500' : 'bg-red-500'}`}></span>
+            WebSocket Live Feed
+          </h2>
+          <Badge variant={connectionStatus === 'connected' ? 'green' : 'red'}>
+            {connectionStatus.toUpperCase()}
+          </Badge>
+        </div>
+
+        {liveData ? (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-slate-900/50 p-3 rounded-lg border border-white/5">
+              <p className="text-xs text-gray-400 mb-1">Temperature</p>
+              <p className="text-xl font-mono text-neon-cyan">{liveData.temperature}°C</p>
+            </div>
+            <div className="bg-slate-900/50 p-3 rounded-lg border border-white/5">
+              <p className="text-xs text-gray-400 mb-1">Humidity</p>
+              <p className="text-xl font-mono text-neon-purple">{liveData.humidity}%</p>
+            </div>
+            <div className="bg-slate-900/50 p-3 rounded-lg border border-white/5">
+              <p className="text-xs text-gray-400 mb-1">CPU Usage</p>
+              <p className="text-xl font-mono text-yellow-400">{liveData.cpuUsage}%</p>
+            </div>
+            <div className="bg-slate-900/50 p-3 rounded-lg border border-white/5">
+              <p className="text-xs text-gray-400 mb-1">Memory</p>
+              <p className="text-xl font-mono text-green-400">{liveData.memoryUsage} KB</p>
+            </div>
+            <div className="col-span-2 md:col-span-4 bg-slate-900/50 p-3 rounded-lg border border-white/5">
+              <p className="text-xs text-gray-400 mb-1">Dilithium-3 Signature Hash</p>
+              <p className="font-mono text-xs text-green-400 truncate">{liveData.signature.hash}</p>
+            </div>
+          </div>
+        ) : (
+          <div className="text-center py-8 text-gray-500">
+            <p>Waiting for live WebSocket data...</p>
+            <p className="text-xs mt-2">Backend sending data every 2 seconds</p>
+          </div>
+        )}
+      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Device Card */}

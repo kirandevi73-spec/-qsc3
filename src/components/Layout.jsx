@@ -12,11 +12,11 @@ import {
   Scale,
   GitMerge,
   ShieldAlert,
-  Menu,
   X,
   Zap
 } from 'lucide-react';
 import { cn } from './ui';
+import Header from './Layout/Header';
 
 const NAV_ITEMS = [
   { path: '/dashboard', name: 'Dashboard', icon: LayoutDashboard },
@@ -115,25 +115,7 @@ export default function Layout({ children }) {
 
       {/* Main Content */}
       <div className="flex flex-1 flex-col min-w-0 w-full overflow-hidden">
-        <header className="flex h-16 shrink-0 w-full items-center justify-between border-b border-white/5 glass px-4 md:px-6 lg:px-8 relative z-30">
-          <button
-            onClick={toggleSidebar}
-            className="text-gray-400 hover:text-white lg:hidden"
-          >
-            <Menu size={24} />
-          </button>
-
-          <div className="flex flex-1 items-center justify-end gap-4">
-            <div className="hidden sm:flex items-center gap-4 text-sm font-mono text-gray-400">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                Mainnet
-              </div>
-              <div className="h-4 w-px bg-gray-700"></div>
-              <div>Block: <span className="text-neon-cyan">18,492,301</span></div>
-            </div>
-          </div>
-        </header>
+        <Header toggleSidebar={toggleSidebar} />
 
         <main className="flex-1 min-w-0 w-full overflow-y-auto overflow-x-hidden p-4 md:p-6 lg:p-8 relative">
           {/* Subtle grid overlay for main area */}
