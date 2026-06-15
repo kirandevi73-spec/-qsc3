@@ -46,7 +46,7 @@ router.post('/register', async (req, res) => {
       { expiresIn: '7d' }
     );
 
-    res.status(201).json({ token, user: { email: newUser.email, type: 'email' } });
+    res.status(201).json({ success: true, token, user: { id: newUser.id, email: newUser.email, type: 'email' } });
   } catch (error) {
     console.error('Register error:', error);
     res.status(500).json({ error: 'Server error during registration' });
@@ -77,7 +77,7 @@ router.post('/login', async (req, res) => {
       { expiresIn: '7d' }
     );
 
-    res.json({ token, user: { email: user.email, type: 'email' } });
+    res.json({ success: true, token, user: { id: user.id, email: user.email, type: 'email' } });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Server error during login' });
@@ -98,7 +98,7 @@ router.post('/metamask/nonce', (req, res) => {
     const nonce = `QSC3-Auth-Nonce-${crypto.randomBytes(16).toString('hex')}`;
     nonceStore.set(address.toLowerCase(), nonce);
 
-    res.json({ nonce });
+    res.json({ success: true, nonce });
   } catch (error) {
     console.error('Nonce error:', error);
     res.status(500).json({ error: 'Server error generating nonce' });
@@ -148,7 +148,7 @@ router.post('/metamask/verify', async (req, res) => {
       { expiresIn: '7d' }
     );
 
-    res.json({ token, user: { address: user.address, type: 'wallet' } });
+    res.json({ success: true, token, user: { id: user.id, address: user.address, type: 'wallet' } });
   } catch (error) {
     console.error('MetaMask verify error:', error);
     res.status(500).json({ error: 'Server error verifying signature' });
@@ -178,7 +178,35 @@ router.get('/verify', (req, res) => {
       return res.status(401).json({ error: 'User no longer exists' });
     }
 
-    res.json({ valid: true, user: { email: user.email, address: user.address, type: decoded.type } });
+    res.json({ success: true, valid: true, user: { id: user.id, email: user.email, address: user.address, type: decoded.type } });
+  } catch (error) {
+    res.status(401).json({ error: 'Invalid token' });
+  }
+});
+
+// GET /me - Get current user
+router.get('/me', (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'No token provided' });
+    }
+
+    const token = authHeader.split(' ')[1];
+    const decoded = jwt.verify(token, JWT_SECRET);
+    
+    let user;
+    if (decoded.type === 'wallet') {
+      user = db.get('users').find({ address: decoded.address }).value();
+    } else {
+      user = db.get('users').find({ email: decoded.email }).value();
+    }
+
+    if (!user) {
+      return res.status(401).json({ error: 'User not found' });
+    }
+
+    res.json({ success: true, user: { id: user.id, email: user.email, address: user.address, type: decoded.type } });
   } catch (error) {
     res.status(401).json({ error: 'Invalid token' });
   }

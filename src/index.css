@@ -3,23 +3,74 @@
 @tailwind utilities;
 
 @layer base {
+  :root, html.dark {
+    --bg-primary: #050510;
+    --bg-surface: #0f172a;
+    --text-primary: #e5e7eb;
+    --text-secondary: #9ca3af;
+    --neon-cyan: #00f3ff;
+    --neon-purple: #bc13fe;
+    --border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  html.light {
+    --bg-primary: #e8f4ff;
+    --bg-surface: #ffffff;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --neon-cyan: #00b3cc;
+    --neon-purple: #9b0fd9;
+    --border-color: rgba(0, 0, 0, 0.1);
+  }
+
   html {
     @apply text-sm md:text-base;
     -webkit-text-size-adjust: 100%;
   }
 
   body {
-    @apply bg-dark-bg text-gray-200 overflow-x-hidden;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    overflow-x: hidden;
     width: 100%;
     max-width: 100vw;
     background-image: 
-      linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
+      linear-gradient(to right, var(--border-color) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--border-color) 1px, transparent 1px);
     background-size: 40px 40px;
     background-attachment: fixed;
+    position: relative;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 
-  /* SVG/Merkle Tree Fixes */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    background-image: radial-gradient(var(--neon-cyan) 1px, transparent 1px);
+    background-size: 50px 50px;
+    opacity: 0.1;
+    animation: flicker 4s infinite alternate;
+    z-index: -1;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(to bottom, transparent 0%, color-mix(in srgb, var(--neon-cyan) 5%, transparent) 50%, transparent 100%);
+    animation: scan 8s linear infinite;
+    pointer-events: none;
+    z-index: 9999;
+  }
+
   svg {
     @apply max-w-full h-auto;
     overflow: hidden;
@@ -32,25 +83,90 @@
 
 @layer components {
   .glass {
-    @apply bg-slate-900/45 backdrop-blur-[16px] border border-white/10;
+    background: color-mix(in srgb, var(--bg-surface) 45%, transparent);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--border-color);
   }
   
   .glass-strong {
-    @apply bg-[#0a0f1e]/70 backdrop-blur-[24px] border border-neon-cyan/15;
+    background: color-mix(in srgb, var(--bg-surface) 70%, transparent);
+    backdrop-filter: blur(24px);
+    border: 1px solid color-mix(in srgb, var(--neon-cyan) 15%, transparent);
+  }
+
+  .quantum-card {
+    @apply glass rounded-xl p-6 transition-all duration-300;
+    border-color: var(--border-color);
+  }
+  .quantum-card:hover {
+    border-color: var(--neon-cyan);
+    box-shadow: 0 0 15px color-mix(in srgb, var(--neon-cyan) 20%, transparent), inset 0 0 10px color-mix(in srgb, var(--neon-cyan) 10%, transparent);
+    transform: translateY(-4px);
+  }
+
+  .quantum-card-purple {
+    @apply glass rounded-xl p-6 transition-all duration-300;
+    border-color: var(--border-color);
+  }
+  .quantum-card-purple:hover {
+    border-color: var(--neon-purple);
+    box-shadow: 0 0 15px color-mix(in srgb, var(--neon-purple) 20%, transparent), inset 0 0 10px color-mix(in srgb, var(--neon-purple) 10%, transparent);
+    transform: translateY(-4px);
+  }
+
+  .neon-btn-cyan {
+    @apply px-4 py-2 rounded font-semibold transition-all duration-200 relative overflow-hidden;
+    border: 1px solid var(--neon-cyan);
+    color: var(--neon-cyan);
+    background: transparent;
+  }
+  .neon-btn-cyan:hover {
+    box-shadow: 0 0 10px var(--neon-cyan), inset 0 0 10px color-mix(in srgb, var(--neon-cyan) 30%, transparent);
+    background: color-mix(in srgb, var(--neon-cyan) 10%, transparent);
+  }
+  .neon-btn-cyan:active {
+    transform: scale(0.95);
+  }
+
+  .neon-btn-purple {
+    @apply px-4 py-2 rounded font-semibold transition-all duration-200 relative overflow-hidden;
+    border: 1px solid var(--neon-purple);
+    color: var(--neon-purple);
+    background: transparent;
+  }
+  .neon-btn-purple:hover {
+    box-shadow: 0 0 10px var(--neon-purple), inset 0 0 10px color-mix(in srgb, var(--neon-purple) 30%, transparent);
+    background: color-mix(in srgb, var(--neon-purple) 10%, transparent);
+  }
+  .neon-btn-purple:active {
+    transform: scale(0.95);
+  }
+
+  .stat-value {
+    @apply font-mono text-3xl font-bold tracking-tight;
+    color: var(--neon-cyan);
+    text-shadow: 0 0 10px color-mix(in srgb, var(--neon-cyan) 50%, transparent);
+  }
+
+  .section-title {
+    @apply uppercase tracking-[0.2em] font-bold text-xl mb-4 font-orbitron;
+    color: var(--neon-cyan);
+    text-shadow: 0 0 10px color-mix(in srgb, var(--neon-cyan) 50%, transparent);
   }
   
   .neon-border-cyan {
-    @apply border-neon-cyan/25 shadow-[0_0_15px_rgba(0,243,255,0.08)];
+    border-color: color-mix(in srgb, var(--neon-cyan) 25%, transparent);
+    box-shadow: 0 0 15px color-mix(in srgb, var(--neon-cyan) 8%, transparent);
   }
   
   .neon-text-cyan {
-    @apply text-neon-cyan;
-    text-shadow: 0 0 10px rgba(0, 243, 255, 0.4);
+    color: var(--neon-cyan);
+    text-shadow: 0 0 10px color-mix(in srgb, var(--neon-cyan) 40%, transparent);
   }
   
   .neon-text-purple {
-    @apply text-neon-purple;
-    text-shadow: 0 0 10px rgba(188, 19, 254, 0.4);
+    color: var(--neon-purple);
+    text-shadow: 0 0 10px color-mix(in srgb, var(--neon-purple) 40%, transparent);
   }
 }
 
@@ -66,9 +182,10 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(to bottom, transparent 0%, rgba(0, 243, 255, 0.2) 50%, transparent 100%);
-    animation: scan 4s linear infinite;
+    background: linear-gradient(to bottom, transparent 0%, color-mix(in srgb, var(--neon-cyan) 20%, transparent) 50%, transparent 100%);
+    animation: scan 6s linear infinite;
     pointer-events: none;
+    z-index: 50;
   }
 
   .node-pulse {
@@ -76,13 +193,7 @@
   }
 }
 
-/* 
-  Global Responsive Overrides 
-  These satisfy the user requirements without modifying every single page component 
-*/
-
 @media (max-width: 1023px) {
-  /* Tables horizontally scrollable on mobile & tablet */
   main table {
     display: block !important;
     width: 100% !important;
@@ -94,12 +205,9 @@
 }
 
 @media (max-width: 767px) {
-  /* Force grid layouts to single column on mobile */
   main .grid[class*="grid-cols-"] {
     grid-template-columns: minmax(0, 1fr) !important;
   }
-
-  /* Full width buttons on mobile */
   main button, 
   main .btn {
     width: 100% !important;
@@ -121,18 +229,17 @@
   100% { transform: scale(2.5); opacity: 0; }
 }
 
-/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: rgba(5, 5, 16, 1);
+  background: var(--bg-primary);
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 243, 255, 0.2);
+  background: color-mix(in srgb, var(--neon-cyan) 20%, transparent);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 243, 255, 0.5);
+  background: color-mix(in srgb, var(--neon-cyan) 50%, transparent);
 }

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Menu, UserCircle, LogOut } from 'lucide-react';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from "../../context/AuthContext";
 
 export default function Header({ toggleSidebar }) {
   const { isAuthenticated, user, logout } = useAuth();

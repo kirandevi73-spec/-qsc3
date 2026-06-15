@@ -13,6 +13,20 @@
       "address": "0x70997970c51812dc3a010c7d01b50e0d17dc79c8",
       "type": "wallet",
       "createdAt": "2026-05-27T11:17:28.376Z"
+    },
+    {
+      "id": "40be555c-b3a2-46f9-95ef-c6c6a662e122",
+      "email": "kira@gmail.com",
+      "password": "$2a$10$C9Eu/0nw/RroykMYQ4X6COTC/JGTSB2YAkmyHxuQqVS2ytkYvRpKS",
+      "type": "email",
+      "createdAt": "2026-05-29T17:32:37.293Z"
+    },
+    {
+      "id": "fbe0ad0f-7f97-46d4-a12e-af41f5219e86",
+      "email": "kiran@gamil.com",
+      "password": "$2a$10$/sQMP4pvRSGkhx1JAnyBjO.48fP2Wg1UlQF07SrJTsVacP2b12NjC",
+      "type": "email",
+      "createdAt": "2026-05-30T11:38:47.418Z"
     }
   ],
   "iotData": []

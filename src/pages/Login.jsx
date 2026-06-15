@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, Lock, Shield, Loader2, Wallet } from 'lucide-react';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../context/AuthContext';
 import { Navigate, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { ethers } from 'ethers';
